@@ -1,48 +1,32 @@
-# Manual Subtitle Editor
+# Subtitle Editor
 
-A small browser-based subtitle editor for creating, revising, importing, and exporting subtitle files against local audio or video media.
+A lightweight web app for creating, editing, importing, and exporting subtitles for local audio and video files.
 
-## Open the App
+## Live Demo
 
-Open `index.html` in a browser. The app is plain HTML, CSS, and JavaScript, so it does not require a build step or local server.
+Try the app here: [https://ruiling-chen.github.io/subtitle-editor/](https://ruiling-chen.github.io/subtitle-editor/)
 
-## Main Workflow
+## Features
 
-1. Load an audio or video file.
-2. Use the waveform to choose subtitle start and end times.
-3. Type subtitle text in the editor.
-4. Press Enter to save the row.
-5. Import existing `.srt` or `.vtt` files when needed.
-6. Export finished subtitles as SRT or VTT.
+- Load local audio or video files directly in the browser.
+- Edit subtitle timing with an interactive waveform.
+- Create, revise, insert, and delete subtitle rows.
+- Import existing SRT or VTT subtitle files.
+- Export finished subtitles as SRT or VTT.
+- Autosave work locally in the browser.
 
-## Editing Controls
+## Usage
 
-- Left-click the waveform to set the start time.
-- Right-click the waveform to set the end time.
-- Drag waveform markers to adjust timing.
-- Use the overview bar to move through longer media.
-- Use zoom controls or trackpad gestures to inspect timing more closely.
-- Select a saved row to revise it.
-- Use Insert Before and Insert After to add rows around the selected subtitle.
-- Enable Wrap table text to inspect multi-line subtitle content.
+1. Open the [live demo](https://ruiling-chen.github.io/subtitle-editor/) and load a media file.
+2. Select timing on the waveform, enter subtitle text, and save each row.
+3. Export the completed subtitles as SRT or VTT.
 
-## Local Drafts
+## Tech Stack
 
-The editor autosaves the current draft in the browser with IndexedDB. Draft restore keeps subtitle rows, text, selection, and waveform view state, but media files must be selected again because browsers do not persist access to local files automatically.
+- HTML
+- CSS
+- JavaScript
 
-## Keyboard Shortcuts
+## License
 
-- Space: play or pause when not typing.
-- Command/Ctrl + P: replay the selected subtitle segment.
-- Command/Ctrl + Left or Right: move the waveform window.
-- Command/Ctrl + Plus or Minus: zoom the waveform.
-- Command/Ctrl + Z: undo.
-- Command/Ctrl + Shift + Z: redo.
-- Command/Ctrl + S: save the local draft immediately.
-- Command/Ctrl + Delete or Backspace: delete the selected subtitle row.
-
-## Files
-
-- `index.html`: App markup and accessible controls.
-- `styles.css`: Layout, responsive behavior, waveform/table states, and modal styling.
-- `app.js`: Media loading, waveform rendering, subtitle parsing/export, row editing, draft persistence, and event handling.
+MIT License
