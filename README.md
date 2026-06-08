@@ -2,9 +2,11 @@
 
 A lightweight web app for creating, editing, importing, and exporting subtitles for local audio and video files.
 
-## Live Demo
+## Usage
 
-Try the app here: [https://ruiling-chen.github.io/subtitle-editor/](https://ruiling-chen.github.io/subtitle-editor/)
+1. Open [Subtitle Editor](https://ruiling-chen.github.io/subtitle-editor/) and load a media file.
+2. Select timing on the waveform, enter subtitle text, and save each row.
+3. Export the completed subtitles as SRT or VTT.
 
 ## Features
 
@@ -14,18 +16,6 @@ Try the app here: [https://ruiling-chen.github.io/subtitle-editor/](https://ruil
 - Import existing SRT or VTT subtitle files.
 - Export finished subtitles as SRT or VTT.
 - Autosave work locally in the browser.
-
-## Usage
-
-1. Open the [live demo](https://ruiling-chen.github.io/subtitle-editor/) and load a media file.
-2. Select timing on the waveform, enter subtitle text, and save each row.
-3. Export the completed subtitles as SRT or VTT.
-
-## Tech Stack
-
-- HTML
-- CSS
-- JavaScript
 
 ## License
 

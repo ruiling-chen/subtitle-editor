@@ -105,13 +105,16 @@ button:disabled,
 
 .brand-mark {
   align-items: center;
-  border: 2px solid #9aa0aa;
-  color: var(--primary);
   display: inline-flex;
-  font-size: 18px;
   height: 28px;
   justify-content: center;
   width: 28px;
+}
+
+.brand-mark img {
+  display: block;
+  height: 100%;
+  width: 100%;
 }
 
 .brand strong {
