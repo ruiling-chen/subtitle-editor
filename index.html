@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manual Subtitle Editor</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="app">
+    <header class="app-toolbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">▤</span>
+        <strong>Subtitle Editor</strong>
+      </div>
+      <div class="toolbar-tools desktop-tools" aria-label="Editor tools">
+        <label class="tool-button primary icon-tool" for="mediaInput" aria-label="Load Media">
+          <span class="tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg></span>
+          <span class="tool-label">Load Media</span>
+        </label>
+        <label class="tool-button secondary icon-tool" for="subtitleInput" aria-label="Import Subtitles">
+          <span class="tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/><path d="M15 12H8"/><path d="m11 9-3 3 3 3"/></svg></span>
+          <span class="tool-label">Import Subtitles</span>
+        </label>
+        <div class="export-control">
+          <button id="exportButton" class="tool-button secondary icon-tool" type="button" aria-label="Export Subtitles" aria-expanded="false" aria-controls="exportMenu">
+            <span class="tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/><path d="M9 12h7"/><path d="m13 9 3 3-3 3"/></svg></span>
+            <span class="tool-label">Export Subtitles</span>
+          </button>
+          <div id="exportMenu" class="export-menu" hidden>
+            <button id="exportSrtOption" type="button">Export as SRT</button>
+            <button id="exportVttOption" type="button">Export as VTT</button>
+          </div>
+        </div>
+        <button id="helpToggle" class="tool-button secondary icon-tool" type="button" aria-label="Help" aria-expanded="false" aria-controls="helpPanel">
+          <span class="tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.7 2.7 0 1 1 4.6 1.9c-1 .8-1.6 1.3-1.6 2.6"/><path d="M12 17h.01"/></svg></span>
+          <span class="tool-label">Help</span>
+        </button>
+      </div>
+
+      <div class="mobile-tools">
+        <button id="toolsButton" class="tool-button primary tools-button" type="button" aria-expanded="false" aria-controls="toolsMenu">
+          <span class="tool-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/></svg></span>
+          Tools
+        </button>
+        <div id="toolsMenu" class="tools-menu" hidden>
+          <label id="mobileMediaLabel" class="tool-button menu-item" for="mediaInput">Load Media</label>
+          <label id="mobileSubtitleLabel" class="tool-button menu-item" for="subtitleInput">Import Subtitles</label>
+          <button id="mobileExportButton" class="tool-button menu-item" type="button" aria-expanded="false" aria-controls="mobileExportMenu">Export Subtitles</button>
+          <div id="mobileExportMenu" class="mobile-export-menu" hidden>
+            <button id="mobileExportSrtOption" type="button">Export as SRT</button>
+            <button id="mobileExportVttOption" type="button">Export as VTT</button>
+          </div>
+          <button id="mobileHelpToggle" class="tool-button menu-item" type="button" aria-expanded="false" aria-controls="helpPanel">Help</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Hidden inputs stay outside the toolbar so desktop and mobile labels can share them. -->
+    <input id="mediaInput" class="visually-hidden" type="file" accept="audio/*,video/*">
+    <input id="subtitleInput" class="visually-hidden" type="file" accept=".srt,.vtt,text/vtt,text/plain">
+
+    <!-- Main editing surface: drag-and-drop target, media preview, waveform, text entry, and subtitle rows. -->
+    <section class="editing-surface" id="dropZone">
+      <div class="drop-hint">
+        Load media from the top-right button, or drag an audio/video file anywhere into this workspace.
+      </div>
+
+      <div id="editorGrid" class="editor-grid">
+        <div class="media-panel">
+          <video id="videoPlayer" class="media-player" controls playsinline></video>
+          <audio id="audioPlayer" class="media-player" controls></audio>
+          <div id="emptyPreview" class="empty-preview">Media preview appears here after loading a file.</div>
+        </div>
+
+        <div id="videoResizer" class="video-resizer" role="separator" aria-orientation="vertical" aria-label="Resize video and editor columns"></div>
+
+        <div class="editor-side">
+          <div class="waveform-wrap">
+            <div class="waveform-toolbar">
+              <div class="compact-times">
+                <span>Start <strong id="startTime">--:--.---</strong></span>
+                <span>End <strong id="endTime">--:--.---</strong></span>
+                <span>Length <strong id="lengthTime">--:--.---</strong></span>
+              </div>
+              <div class="wave-buttons">
+                <button id="prevWindowButton" class="secondary" type="button">← 15s</button>
+                <button id="zoomOutButton" class="secondary" type="button">Zoom out</button>
+                <button id="zoomInButton" class="secondary" type="button">Zoom in</button>
+                <button id="nextWindowButton" class="secondary" type="button">15s →</button>
+              </div>
+            </div>
+            <canvas id="waveformCanvas" aria-label="Waveform editor"></canvas>
+            <div class="overview-bar" id="overviewBar" aria-label="Whole media overview">
+              <div class="overview-window" id="overviewWindow"></div>
+            </div>
+            <p id="statusText" class="status" aria-live="polite"></p>
+          </div>
+
+          <div class="text-actions">
+            <textarea id="subtitleText" spellcheck="true" placeholder="Type subtitle text, then press Enter..."></textarea>
+            <span id="steadyCaret" class="steady-caret" aria-hidden="true"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-tools">
+        <div class="row-edit-tools">
+          <button id="insertBeforeButton" class="secondary" type="button" disabled>Insert Before</button>
+          <button id="insertAfterButton" class="secondary" type="button" disabled>Insert After</button>
+        </div>
+        <label class="wrap-toggle">
+          <input id="wrapTextToggle" type="checkbox">
+          Wrap table text
+        </label>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Start</th>
+              <th>End</th>
+              <th>Text</th>
+            </tr>
+          </thead>
+          <tbody id="subtitleRows">
+            <tr class="empty-row">
+              <td>1</td><td></td><td></td><td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Help is toggled from both desktop and mobile controls, so its expanded state is synchronized in app.js. -->
+    <section id="helpPanel" class="help-panel" hidden>
+      <div>
+        <h2>User Guide</h2>
+        <ul>
+          <li>Left-click the waveform to set the subtitle start time.</li>
+          <li>Right-click the waveform to set the subtitle end time.</li>
+          <li>Drag marker borders on the waveform to adjust timestamps.</li>
+          <li>Press Enter to save a row; Shift + Enter adds a line break.</li>
+          <li>Click a saved row to select it, then use Insert Before, Insert After, or Command + Delete.</li>
+          <li>Import existing .srt/.vtt files, then export finished subtitles from the Export Subtitles menu.</li>
+        </ul>
+      </div>
+      <div>
+        <h2>Shortcuts</h2>
+        <ul>
+          <li><code>space</code> to play/pause when you are not typing.</li>
+          <li><code>⌘ + p</code> to replay the selected segment while editing text.</li>
+          <li><code>⌘ + ← / →</code> to move the waveform window backward or forward.</li>
+          <li><code>⌘ + + / -</code> to zoom the waveform in or out.</li>
+          <li><code>⌘ + z</code> to undo; <code>⌘ + shift + z</code> to redo.</li>
+          <li><code>⌘ + s</code> to save the local draft immediately.</li>
+          <li>The next subtitle draft starts where the previous row ends.</li>
+          <li>On the waveform: pinch/open with two fingers zooms; two-finger left/right moves through time.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Reusable modal for decisions that should block the current editing flow. -->
+    <div id="appModal" class="modal-backdrop" hidden>
+      <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <h2 id="modalTitle"></h2>
+        <p id="modalMessage"></p>
+        <div id="modalActions" class="modal-actions"></div>
+      </section>
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
