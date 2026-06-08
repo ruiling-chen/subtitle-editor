@@ -491,6 +491,21 @@ function setViewAround(ms) {
   clampViewStart();
 }
 
+function revealSelectionRange(selection) {
+  if (!state.durationMs || !selection) return;
+  const visibleEnd = state.viewStartMs + state.viewDurationMs;
+  if (selection.start >= state.viewStartMs && selection.end <= visibleEnd) return;
+
+  const selectionDuration = selection.end - selection.start;
+  if (selectionDuration > state.viewDurationMs * 0.8) {
+    state.viewDurationMs = Math.min(state.durationMs, Math.max(3000, Math.ceil(selectionDuration * 1.25)));
+  }
+
+  const leadingPaddingMs = Math.max(0, Math.round((state.viewDurationMs - selectionDuration) * 0.15));
+  state.viewStartMs = selection.start - leadingPaddingMs;
+  clampViewStart();
+}
+
 function updateWindowButtons() {
   const hasMedia = state.durationMs > 0;
   els.prevWindowButton.disabled = !hasMedia || state.viewStartMs <= 0;
@@ -1308,7 +1323,7 @@ function saveSubtitle() {
   }
   updateSteadyCaret();
   updateReadout();
-  renderRows();
+  renderRows({ scrollMode: "revealActive" });
   draw();
   els.subtitleText.focus();
   scheduleAutosave();
@@ -1327,12 +1342,12 @@ function addSubtitleRow(startMs, endMs, text = "") {
   pushHistory();
   state.rows.push(row);
   state.rows.sort((a, b) => a.startMs - b.startMs || a.endMs - b.endMs);
-  loadRow(row.id, { focusText: true, commitCurrent: false });
+  loadRow(row.id, { focusText: true, commitCurrent: false, scrollMode: "revealActive" });
   scheduleAutosave();
   return row;
 }
 
-function loadRow(rowId, { focusText = false, commitCurrent = true } = {}) {
+function loadRow(rowId, { focusText = false, commitCurrent = true, scrollMode = "preserve" } = {}) {
   if (commitCurrent && state.activeRowId && state.activeRowId !== rowId) {
     commitActiveRowDraft();
   }
@@ -1342,9 +1357,10 @@ function loadRow(rowId, { focusText = false, commitCurrent = true } = {}) {
   state.selectionStartMs = row.startMs;
   state.selectionEndMs = row.endMs;
   els.subtitleText.value = row.text;
+  revealSelectionRange(normalizedSelection());
   updateSteadyCaret();
   updateReadout();
-  renderRows();
+  renderRows({ scrollMode });
   draw();
   if (focusText) els.subtitleText.focus();
   setStatus("Loaded row for revision. Edit text or timing, then press Enter to save.");
@@ -1467,14 +1483,26 @@ function matchingRowIdForSelection() {
   return match?.id || null;
 }
 
-function scrollActiveRowIntoView() {
-  const activeRow = els.rows.querySelector("tr.active[data-row-id]");
+function revealActiveRowIfNeeded() {
+  const activeRow = els.rows.querySelector("tr.active");
   if (!activeRow) return;
-  const targetTop = activeRow.offsetTop - els.tableWrap.clientHeight + activeRow.offsetHeight;
-  els.tableWrap.scrollTop = Math.max(0, targetTop);
+
+  const table = els.rows.closest("table");
+  const stickyHeaderHeight = table?.querySelector("thead")?.offsetHeight || 0;
+  const visibleTop = els.tableWrap.scrollTop + stickyHeaderHeight;
+  const visibleBottom = els.tableWrap.scrollTop + els.tableWrap.clientHeight;
+  const rowTop = activeRow.offsetTop;
+  const rowBottom = rowTop + activeRow.offsetHeight;
+
+  if (rowTop < visibleTop) {
+    els.tableWrap.scrollTop = Math.max(0, rowTop - stickyHeaderHeight);
+  } else if (rowBottom > visibleBottom) {
+    els.tableWrap.scrollTop = Math.max(0, rowBottom - els.tableWrap.clientHeight);
+  }
 }
 
-function renderRows() {
+function renderRows({ scrollMode = "preserve" } = {}) {
+  const previousScrollTop = els.tableWrap.scrollTop;
   els.rows.innerHTML = "";
   const rows = displayRowsWithDraft();
   const overlaps = overlappingDisplayIds(rows);
@@ -1505,7 +1533,11 @@ function renderRows() {
   });
 
   updateRowToolState();
-  scrollActiveRowIntoView();
+  if (scrollMode === "revealActive") {
+    revealActiveRowIfNeeded();
+  } else {
+    els.tableWrap.scrollTop = previousScrollTop;
+  }
 }
 
 // Event wiring: menus, file loading, waveform editing, playback shortcuts, and startup rendering.
